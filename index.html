@@ -205,33 +205,40 @@ if(jawaban[i]!==null) btn.classList.add("answered");
 }
 }
 
+<script>
+
 function submitQuiz(){
+
+clearInterval(timer); // hentikan timer
+
 let score=0;
 soalData.forEach((s,i)=>{
 if(jawaban[i]===s.k) score++;
 });
+
+let nilai=(score*2.5).toFixed(0);
+
 document.getElementById("result").innerHTML=
-"Nama: "+nama+"<br>Nilai Anda: "+(score*2.5).toFixed(0)+" / 100";
+"Nama: "+nama+
+"<br>Nilai Anda: <b>"+nilai+" / 100</b><br><br>"+
+"<button onclick='keluarUjian()'>Keluar Ujian</button>";
+
+// Nonaktifkan proteksi setelah selesai
+window.removeEventListener("beforeunload", beforeUnloadHandler);
+
 }
 
-let totalTime=90*60;
-let timer;
-function startTimer(){
-timer=setInterval(()=>{
-totalTime--;
-let m=Math.floor(totalTime/60);
-let s=totalTime%60;
-document.getElementById("time").innerText=
-m+":"+(s<10?"0"+s:s);
-if(totalTime<=0){
-clearInterval(timer);
-submitQuiz();
-}
-},1000);
+function keluarUjian(){
+location.reload(); // kembali ke halaman awal
 }
 
-buatNomor();
-renderSoal();
+// Simpan handler agar bisa dilepas
+function beforeUnloadHandler(e){
+e.preventDefault();
+e.returnValue="Ujian sedang berlangsung. Yakin ingin keluar?";
+}
+
+window.addEventListener("beforeunload", beforeUnloadHandler);
 
 </script>
 
