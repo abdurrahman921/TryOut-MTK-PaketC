@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Try Out Paket C - ANBK Style</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f4f6fa}
+header{background:#0b3d91;color:white;padding:15px;text-align:center}
+#welcome{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#eef2f7}
+#welcome input{padding:10px;width:250px;margin:10px}
+#welcome button{padding:10px 20px;background:#0b3d91;color:white;border:none;border-radius:5px;cursor:pointer}
+#welcome button:hover{background:#072c66}
+
+#exam{display:none}
+
+.main{
+display:flex;
+max-width:1200px;
+margin:20px auto;
+}
+
+.soal-area{
+flex:3;
+background:white;
+padding:20px;
+border-radius:8px;
+margin-right:15px;
+min-height:400px;
+}
+
+.nomor-area{
+flex:1;
+background:white;
+padding:15px;
+border-radius:8px;
+height:fit-content;
+}
+
+.nomor-area button{
+width:45px;
+height:45px;
+margin:5px;
+border:none;
+border-radius:5px;
+background:#ddd;
+cursor:pointer;
+}
+
+.nomor-area button.active{
+background:#0b3d91;
+color:white;
+}
+
+.nomor-area button.answered{
+background:#28a745;
+color:white;
+}
+
+.pilihan label{
+display:block;
+margin:8px 0;
+}
+
+.nav{
+margin-top:15px;
+}
+
+.nav button{
+padding:8px 15px;
+margin-right:10px;
+background:#0b3d91;
+color:white;
+border:none;
+border-radius:4px;
+cursor:pointer;
+}
+
+.timer{
+float:right;
+font-weight:bold;
+}
+
+.result{
+text-align:center;
+font-size:20px;
+margin-top:20px;
+font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<!-- HALAMAN AWAL -->
+<div id="welcome">
+<h2>SELAMAT DATANG</h2>
+<h3>Try Out Ujian Akhir Paket C (Setara SMA)</h3>
+<h3>DINAS PENDIDIKAN KABUPATEN CIREBON</h3>
+<h3>PKBM BHAKTI INSANI</h3>
+
+<input type="text" id="namaPeserta" placeholder="Masukkan Nama Peserta">
+<button onclick="startExam()">Mulai Ujian</button>
+</div>
+
+<!-- HALAMAN UJIAN -->
+<div id="exam">
+
+<header>
+TRY OUT MATEMATIKA
+<div class="timer">Waktu: <span id="time">90:00</span></div>
+</header>
+
+<div class="main">
+
+<div class="soal-area">
+<div id="soalContainer"></div>
+
+<div class="nav">
+<button onclick="prevSoal()">Sebelumnya</button>
+<button onclick="nextSoal()">Berikutnya</button>
+<button onclick="submitQuiz()">Selesai</button>
+</div>
+
+<div class="result" id="result"></div>
+</div>
+
+<div class="nomor-area" id="nomorArea"></div>
+
+</div>
+</div>
+
+<script>
+
+let nama="";
+function startExam(){
+nama=document.getElementById("namaPeserta").value.trim();
+if(nama===""){
+alert("Nama harus diisi terlebih dahulu!");
+return;
+}
+document.getElementById("welcome").style.display="none";
+document.getElementById("exam").style.display="block";
+startTimer();
+}
+
+const soalData=[];
+for(let i=1;i<=40;i++){
+soalData.push({
+q:"Soal "+i+" : Hasil dari "+i+" + "+i+" adalah ...",
+a:[i*2,(i*2)+1,(i*2)-1,i,i+1],
+k:0
+});
+}
+
+let current=0;
+
+const soalContainer=document.getElementById("soalContainer");
+const nomorArea=document.getElementById("nomorArea");
+
+function renderSoal(){
+let s=soalData[current];
+soalContainer.innerHTML=
+"<p>"+s.q+"</p>"+
+"<div class='pilihan'>"+
+s.a.map((p,j)=>
+"<label><input type='radio' name='soal' value='"+j+"' "+
+(getJawaban(current)==j?"checked":"")+
+" onchange='setJawaban("+current+","+j+")'> "+
+String.fromCharCode(97+j)+". "+p+"</label>"
+).join("")+
+"</div>";
+updateNomor();
+}
+
+let jawaban=new Array(40).fill(null);
+
+function setJawaban(no,val){
+jawaban[no]=val;
+updateNomor();
+}
+
+function getJawaban(no){
+return jawaban[no];
+}
+
+function nextSoal(){ if(current<39){current++;renderSoal();} }
+function prevSoal(){ if(current>0){current--;renderSoal();} }
+
+function buatNomor(){
+for(let i=0;i<40;i++){
+let btn=document.createElement("button");
+btn.innerText=i+1;
+btn.onclick=function(){current=i;renderSoal();}
+btn.id="btn"+i;
+nomorArea.appendChild(btn);
+}
+}
+
+function updateNomor(){
+for(let i=0;i<40;i++){
+let btn=document.getElementById("btn"+i);
+btn.classList.remove("active","answered");
+if(i===current) btn.classList.add("active");
+if(jawaban[i]!==null) btn.classList.add("answered");
+}
+}
+
+function submitQuiz(){
+let score=0;
+soalData.forEach((s,i)=>{
+if(jawaban[i]===s.k) score++;
+});
+document.getElementById("result").innerHTML=
+"Nama: "+nama+"<br>Nilai Anda: "+(score*2.5).toFixed(0)+" / 100";
+}
+
+let totalTime=90*60;
+let timer;
+function startTimer(){
+timer=setInterval(()=>{
+totalTime--;
+let m=Math.floor(totalTime/60);
+let s=totalTime%60;
+document.getElementById("time").innerText=
+m+":"+(s<10?"0"+s:s);
+if(totalTime<=0){
+clearInterval(timer);
+submitQuiz();
+}
+},1000);
+}
+
+buatNomor();
+renderSoal();
+
+</script>
+
+</body>
+</html>
+<script>
+
+// ===== ANTI REFRESH & ANTI KELUAR =====
+
+// Mencegah tombol back browser
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+    history.go(1);
+};
+
+// Peringatan saat refresh / close
+window.addEventListener("beforeunload", function (e) {
+    e.preventDefault();
+    e.returnValue = "Ujian sedang berlangsung. Yakin ingin keluar?";
+});
+
+// Nonaktifkan tombol F5 dan Ctrl+R
+document.addEventListener("keydown", function(e){
+    if(e.key === "F5" || (e.ctrlKey && e.key === "r")){
+        e.preventDefault();
+        alert("Refresh tidak diizinkan saat ujian berlangsung!");
+    }
+});
+
+// Nonaktifkan klik kanan
+document.addEventListener("contextmenu", function(e){
+    e.preventDefault();
+});
+
+</script>
